@@ -47,8 +47,18 @@ final class CameraWifi {
     static final String TAG = "OMTime";
     static final long PROBE_EVERY_MS = 3 * 60 * 1000L;
     private static final long PROBE_MIN_GAP_MS = 30 * 1000L;
-    /** Without scan access the app cannot tell when the camera's Wi-Fi went off, so it waits this long instead. */
-    private static final long FALLBACK_AFTER_SYNC_MS = 30 * 60 * 1000L;
+    /**
+     * After a sync the camera is left alone this long. Seen on a PEN E-PL7: it switches its Wi-Fi off about a minute
+     * after the phone leaves, so once this has passed, its Wi-Fi being there again means it was switched on again.
+     * The app often cannot watch it go off (no checks with the screen off), so it does not wait to see that.
+     */
+    private static final long HOLD_MS = 3 * 60 * 1000L;
+    /**
+     * A camera synced again within STAYS_ON_MS of its last sync, without being seen going off in between, probably
+     * keeps its Wi-Fi on; it is then left alone this long, so the phone is not pulled onto it every few minutes.
+     */
+    private static final long LONG_HOLD_MS = 30 * 60 * 1000L;
+    private static final long STAYS_ON_MS = 15 * 60 * 1000L;
     private static final long AFTER_FAIL_MS = 10 * 60 * 1000L;
     private static final long AFTER_NOT_FOUND_MS = 60 * 1000L;
     /** While the screen is on, a fresh Wi-Fi scan is asked for this often (Android itself scans rarely on a good Wi-Fi). */
@@ -58,7 +68,7 @@ final class CameraWifi {
     /** The camera counts as switched on when a scan saw it this recently... */
     private static final long SEEN_MS = 90 * 1000L;
     /** ...and as switched off when recent scans have not seen it for this long. Tolerates a scan that missed it. */
-    private static final long GONE_MS = 4 * 60 * 1000L;
+    private static final long GONE_MS = 150 * 1000L;
     private static final long NEVER = Long.MAX_VALUE;
     private static final int PROBE_TIMEOUT_MS = 40 * 1000;
     private static final int USER_TIMEOUT_MS = 60 * 1000;
@@ -66,11 +76,11 @@ final class CameraWifi {
     /** One join at a time: the probe, Sync now and a newly added camera all use the Wi-Fi radio. */
     private static final AtomicBoolean busy = new AtomicBoolean();
     private static final Map<String, Long> quietUntil = new HashMap<>();
-    /**
-     * When each camera (by network name) was last synced. With scan access an entry lives only while the camera's
-     * Wi-Fi stays visible, so every time the Wi-Fi is switched on again the camera is synced again, once.
-     */
-    private static final Map<String, Long> syncedAt = new HashMap<>();
+    /** Per camera (by network name): when it was last synced, until when it is left alone, and whether a scan has
+     *  shown its Wi-Fi off since that sync. Guarded by quietUntil. */
+    private static final Map<String, Long> lastSyncAt = new HashMap<>();
+    private static final Map<String, Long> holdUntil = new HashMap<>();
+    private static final Set<String> offSinceSync = new HashSet<>();
     private static long lastProbe;
 
     private CameraWifi() {
@@ -194,18 +204,20 @@ final class CameraWifi {
                 // Only cameras the phone has joined through the app before: Android grants those without a dialog.
                 // A typed-in camera has no access point address, which older Android versions need for that.
                 if (!cam.joined || (cam.bssid == null && Build.VERSION.SDK_INT < 33)) continue;
-                Long synced = syncedAt.get(cam.ssid);
                 if (ages != null) {
                     long age = Math.min(age(ages, cam.ssid), cam.bssid == null ? NEVER : age(ages, cam.bssid));
                     if (age > GONE_MS) {
-                        if (syncedAt.remove(cam.ssid) != null) Log.i(TAG, cam.ssid + " is off; it syncs again next time");
+                        // Seen going off: the session is over, so the next time it is on it syncs straight away.
+                        if (lastSyncAt.containsKey(cam.ssid) && offSinceSync.add(cam.ssid)) {
+                            holdUntil.remove(cam.ssid);
+                            Log.i(TAG, cam.ssid + " is off; it syncs again when it comes back");
+                        }
                         continue;
                     }
-                    if (synced != null) continue;   // already synced since its Wi-Fi came on
                     if (age > SEEN_MS) continue;    // not in the latest scans; wait until one sees it
-                } else if (synced != null && now - synced < FALLBACK_AFTER_SYNC_MS) {
-                    continue;
                 }
+                Long hold = holdUntil.get(cam.ssid);
+                if (hold != null && now < hold) continue;   // synced moments ago
                 Long until = quietUntil.get(cam.ssid);
                 if (until == null || now >= until) targets.add(cam);
             }
@@ -294,16 +306,24 @@ final class CameraWifi {
     }
 
     /**
-     * A camera was synced (by the probe, Sync now, or the phone joining its Wi-Fi by itself). Marks every saved camera
-     * whose network name starts with the model ("E-PL7" for "E-PL7-P-..."), so the probe does not sync it again
-     * while its Wi-Fi stays on.
+     * A camera was synced (by the probe, Sync now, or the phone joining its Wi-Fi by itself). Holds off the camera it
+     * was, and every saved camera whose network name starts with the model ("E-PL7" for "E-PL7-P-..."), for a while.
      */
     static void synced(Context c, String model, Camera joined) {
         long now = SystemClock.elapsedRealtime();
         synchronized (quietUntil) {
-            if (joined != null) syncedAt.put(joined.ssid, now);
+            Set<String> names = new HashSet<>();
+            if (joined != null) names.add(joined.ssid);
             for (Camera cam : Camera.load(c)) {
-                if (cam.ssid.startsWith(model + "-")) syncedAt.put(cam.ssid, now);
+                if (cam.ssid.startsWith(model + "-")) names.add(cam.ssid);
+            }
+            for (String ssid : names) {
+                Long prev = lastSyncAt.get(ssid);
+                boolean staysOn = prev != null && now - prev < STAYS_ON_MS && !offSinceSync.contains(ssid);
+                lastSyncAt.put(ssid, now);
+                holdUntil.put(ssid, now + (staysOn ? LONG_HOLD_MS : HOLD_MS));
+                offSinceSync.remove(ssid);
+                Log.i(TAG, ssid + " synced; left alone for " + (staysOn ? "30 min (its Wi-Fi seems to stay on)" : "3 min"));
             }
         }
     }

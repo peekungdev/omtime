@@ -78,9 +78,14 @@ Wi-Fi comes on and goes off.
 
 | Android | How the phone joins the camera |
 |---|---|
-| 13 and newer | When the camera's Wi-Fi appears in the phone's Wi-Fi scans, the app makes a temporary connection to it, syncs, and releases it, so the phone goes straight back to its usual Wi-Fi. This happens once each time the camera's Wi-Fi is switched on. |
-| 10 to 12 | The same temporary connection, tried when you unlock the phone and every few minutes while the screen is on, and at most once every 30 minutes per camera. |
+| 13 and newer | When the camera's Wi-Fi appears in the phone's Wi-Fi scans, the app makes a temporary connection to it, syncs, and releases it, so the phone goes straight back to its usual Wi-Fi. This happens each time the camera's Wi-Fi is switched on. |
+| 10 to 12 | The same temporary connection, tried when you unlock the phone and every few minutes while the screen is on. |
 | 6 to 9 | The camera is saved as a Wi-Fi network, so the phone joins it when no other saved Wi-Fi is in range. **Sync now** switches to the camera from any network. |
+
+After a sync the app leaves the camera alone for 3 minutes. The PEN E-PL7 switches its Wi-Fi off about a
+minute after the phone leaves, so after that pause the camera's Wi-Fi being there means it was switched on
+again. A camera that seems to keep its Wi-Fi on is left alone for 30 minutes, so the phone is not pulled
+onto it every few minutes.
 
 On Android 10 and newer, Android asks you once to approve the connection to the camera. After that it
 connects without asking. The app does not register the camera as a Wi-Fi suggestion: that made Android

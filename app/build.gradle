@@ -11,8 +11,8 @@ android {
         // Android 6.0. No native code, so the one APK runs on 32-bit and 64-bit phones alike.
         minSdk 23
         targetSdk 34
-        versionCode 9
-        versionName '1.8'
+        versionCode 10
+        versionName '1.9'
     }
 
     buildTypes {

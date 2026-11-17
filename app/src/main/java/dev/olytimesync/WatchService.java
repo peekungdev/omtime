@@ -15,6 +15,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import android.util.Log;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -57,11 +58,17 @@ public class WatchService extends Service {
         }
     };
     private long lastFallback;
+    private long lastScanLog = -10 * 60 * 1000L;
 
     /** Every Wi-Fi scan the phone makes: a camera whose Wi-Fi just came on is synced straight away. */
     private final BroadcastReceiver scans = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            long now = SystemClock.elapsedRealtime();
+            if (now - lastScanLog > 10 * 60 * 1000L) {   // enough to show scans arrive, without filling the log
+                lastScanLog = now;
+                Log.i(CameraWifi.TAG, "Wi-Fi scan results arrive");
+            }
             CameraWifi.probe(WatchService.this, true);
         }
     };
