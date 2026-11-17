@@ -1,0 +1,41 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'dev.olytimesync'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'dev.olytimesync'
+        // Android 6.0. No native code, so the one APK runs on 32-bit and 64-bit phones alike.
+        minSdk 23
+        targetSdk 34
+        versionCode 6
+        versionName '1.5'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // Sideloaded, never published: the debug key is enough and lets later builds install over this one.
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    lint {
+        checkReleaseBuilds false
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    // Test only: the camera protocol is plain Java and is exercised on the JVM against a fake camera.
+    testImplementation 'junit:junit:4.13.2'
+    // android.jar's org.json is a stub in JVM tests; the real one lets the camera list be tested.
+    testImplementation 'org.json:json:20231013'
+}

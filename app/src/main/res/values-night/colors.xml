@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#111316</color>
+    <color name="card">#1C1F23</color>
+    <color name="text">#E3E3E6</color>
+    <color name="text2">#A8ACB2</color>
+    <color name="divider">#2C3036</color>
+    <color name="outline">#4A4F57</color>
+    <color name="primary">#8AB4F8</color>
+    <color name="on_primary">#0B1F3A</color>
+    <color name="primary_container">#24364F</color>
+    <color name="ok">#81C995</color>
+    <color name="ok_container">#1F3326</color>
+    <color name="warn">#FDD663</color>
+    <color name="warn_container">#3A2F12</color>
+    <color name="error">#F28B82</color>
+    <color name="error_container">#3C1F1E</color>
+    <color name="neutral_container">#2C3036</color>
+    <color name="ripple">#33FFFFFF</color>
+</resources>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OM Time</string>
+
+    <!-- Status card -->
+    <string name="hero_never_title">Not synced yet</string>
+    <string name="hero_never_body">Turn on Wi-Fi on the camera. The clock is set as soon as the phone connects.</string>
+    <string name="hero_ok_title">Camera clock set</string>
+    <string name="hero_ok_body">%1$s set to %2$s (%3$s)</string>
+    <string name="hero_fail_title">Sync failed</string>
+    <string name="phone_time">Phone time %1$s &#183; %2$s</string>
+    <string name="chip_watching">Watching</string>
+    <string name="chip_off">Auto sync off</string>
+    <string name="btn_sync">Sync now</string>
+    <string name="btn_syncing">Syncing&#8230;</string>
+    <string name="version">OM Time %1$s</string>
+    <string name="made_by">Made by %1$s</string>
+    <!-- A name: the same in every language. -->
+    <string name="credit" translatable="false">Peekungdev | peekung-development</string>
+
+    <!-- Status lines (notifications and the activity log) -->
+    <string name="status_never">The camera clock has not been set yet.</string>
+    <string name="status_ok">%1$s clock set to %2$s (%3$s)</string>
+    <string name="status_fail">Sync failed: %1$s</string>
+
+    <!-- Cameras -->
+    <string name="section_cameras">Cameras</string>
+    <string name="cameras_none">No camera added yet. Turn on Wi-Fi on the camera, then tap Find camera.</string>
+    <string name="camera_row_switch">Joined automatically, even from another Wi-Fi</string>
+    <string name="camera_row_pending">Tap Sync now once while the camera\'s Wi-Fi is on to finish setting it up</string>
+    <string name="camera_row_join">Joined only when no other Wi-Fi is in range. Add it with Find camera to switch over from other Wi-Fi too.</string>
+    <string name="camera_row_saved">Saved in the phone\'s Wi-Fi</string>
+    <string name="btn_find_camera">Find camera</string>
+    <string name="btn_add_manual">Type in</string>
+    <string name="btn_remove">Remove</string>
+    <string name="btn_save">Save</string>
+    <string name="cd_remove">Remove camera</string>
+    <string name="dlg_remove_title">Remove %1$s?</string>
+    <string name="dlg_remove_body">The app will stop connecting to this camera.</string>
+    <string name="dlg_password_title">Camera Wi-Fi password</string>
+    <string name="dlg_password_body">The password for %1$s is shown on the camera\'s screen, under the network name.</string>
+    <string name="dlg_manual_title">Camera Wi-Fi</string>
+    <string name="hint_ssid">Network name shown on the camera</string>
+    <string name="hint_password">Password</string>
+    <string name="camera_saved">%1$s saved. Connecting to set the clock&#8230;</string>
+
+    <!-- Automation -->
+    <string name="section_automation">Automation</string>
+    <string name="auto_title">Automatic sync</string>
+    <string name="auto_desc">Sets the camera clock whenever the phone connects to the camera\'s Wi-Fi. Starts with the phone.</string>
+    <string name="auto_connect_title">Connect to the camera\'s Wi-Fi</string>
+    <string name="auto_connect_desc_q">When the camera\'s Wi-Fi is on, the phone joins it, sets the clock and goes back to its usual Wi-Fi. Checked when you unlock the phone and every 3 minutes while the screen is on.</string>
+    <string name="auto_connect_desc_legacy">The phone joins the camera\'s Wi-Fi by itself when it is on and no other saved Wi-Fi is in range. Sync now switches to the camera from any Wi-Fi.</string>
+    <string name="btn_wifi">Phone Wi-Fi settings</string>
+
+    <!-- Keep running -->
+    <string name="section_keep_running">Keep running</string>
+    <string name="bg_title">Run in background</string>
+    <string name="bg_ok">Allowed. The phone will not stop the app to save battery.</string>
+    <string name="bg_no">Not allowed yet. The phone may stop the app, and then the camera is not synced.</string>
+    <string name="btn_allow">Allow</string>
+    <string name="btn_open">Open</string>
+    <string name="btn_oem_battery">%1$s battery saver</string>
+    <string name="autostart_title">Start with the phone</string>
+    <string name="autostart_none">On. The app starts by itself after the phone restarts.</string>
+    <string name="autostart_todo">%1$s phones also need Auto-start switched on for this app.</string>
+    <string name="autostart_seen">Make sure OM Time is switched on in %1$s\'s auto-start settings.</string>
+
+    <!-- First-launch guide dialogs -->
+    <string name="dlg_open">Open settings</string>
+    <string name="dlg_later">Later</string>
+    <string name="dlg_restricted_title">Background use is restricted</string>
+    <string name="dlg_restricted_body">On the next screen, open Battery and choose Unrestricted, or turn off the background restriction.</string>
+    <string name="dlg_autostart_title">Allow auto-start</string>
+    <string name="dlg_autostart_body">%1$s phones block apps from starting with the phone until you allow it. On the next screen, find OM Time and switch it on.</string>
+    <string name="dlg_oem_battery_title">Battery saver</string>
+    <string name="dlg_oem_battery_body">On the next screen, set OM Time to No restrictions (it may be called Unrestricted, or Never sleeping apps).</string>
+
+    <!-- Setup guide and log -->
+    <string name="how_title">How to set up</string>
+    <string name="how_body">1. Allow everything the app asks for: notifications, running in the background and, on some phones, auto-start.\n2. On the camera, start Wi-Fi (Connection to Smartphone). It shows a network name and password.\n3. Tap Find camera, pick the camera\'s network and type the password. Find camera lists only Olympus and OM System cameras; if yours is missing, use Type in. If the phone asks whether to connect to the device, allow it.\n4. Done. Whenever the camera\'s Wi-Fi is on, the phone connects and sets the clock from the phone\'s time and time zone.</string>
+    <string name="log_title">Recent activity</string>
+    <string name="log_empty">Nothing yet.</string>
+
+    <!-- Errors -->
+    <string name="err_no_wifi">Wi-Fi is not connected.</string>
+    <string name="err_no_camera">no Olympus camera answered on this Wi-Fi</string>
+    <string name="err_no_camera_added">No camera on this Wi-Fi. Add your camera under Cameras so the app can connect to it.</string>
+    <string name="err_camera_not_found">The camera\'s Wi-Fi was not found. Turn on Wi-Fi on the camera (Connection to Smartphone) and try again.</string>
+    <string name="err_unsupported">%1$s does not offer the clock command</string>
+    <string name="err_ssid">Type the network name exactly as the camera shows it.</string>
+    <string name="err_password">The password must be 8 to 63 characters.</string>
+    <string name="err_find_failed">Could not look for the camera: %1$s</string>
+    <string name="err_pick_failed">The phone did not report which network was picked. Type it in instead.</string>
+
+    <!-- Notifications -->
+    <string name="channel_watch">Waiting for the camera</string>
+    <string name="channel_result">Sync results</string>
+    <string name="notif_waiting">Waiting for the camera\'s Wi-Fi</string>
+</resources>

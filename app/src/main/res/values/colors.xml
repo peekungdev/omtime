@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#F2F4F7</color>
+    <color name="card">#FFFFFF</color>
+    <color name="text">#1A1C1E</color>
+    <color name="text2">#5F6368</color>
+    <color name="divider">#E3E6EA</color>
+    <color name="outline">#C4C8CE</color>
+    <color name="primary">#1F5FAF</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="primary_container">#DCE6F5</color>
+    <color name="ok">#1E8E3E</color>
+    <color name="ok_container">#E3F3E7</color>
+    <color name="warn">#B06000</color>
+    <color name="warn_container">#FDF0DC</color>
+    <color name="error">#C5221F</color>
+    <color name="error_container">#FBE4E2</color>
+    <color name="neutral_container">#E8EAED</color>
+    <color name="ripple">#1F000000</color>
+    <!-- Launcher icon background: the same in both themes. -->
+    <color name="icon_bg">#1F3A5F</color>
+</resources>

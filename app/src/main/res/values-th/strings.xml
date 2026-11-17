@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OM Time</string>
+
+    <!-- Status card -->
+    <string name="hero_never_title">ยังไม่ได้ซิงค์</string>
+    <string name="hero_never_body">เปิด Wi-Fi ที่กล้อง นาฬิกาจะถูกตั้งทันทีที่โทรศัพท์เชื่อมต่อ</string>
+    <string name="hero_ok_title">ตั้งนาฬิกากล้องแล้ว</string>
+    <string name="hero_ok_body">%1$s ตั้งเป็น %2$s (%3$s)</string>
+    <string name="hero_fail_title">ซิงค์ไม่สำเร็จ</string>
+    <string name="phone_time">เวลาโทรศัพท์ %1$s &#183; %2$s</string>
+    <string name="chip_watching">กำลังรอกล้อง</string>
+    <string name="chip_off">ปิดซิงค์อัตโนมัติ</string>
+    <string name="btn_sync">ซิงค์เดี๋ยวนี้</string>
+    <string name="btn_syncing">กำลังซิงค์&#8230;</string>
+    <string name="version">OM Time %1$s</string>
+    <string name="made_by">พัฒนาโดย %1$s</string>
+
+    <!-- Status lines (notifications and the activity log) -->
+    <string name="status_never">ยังไม่เคยตั้งนาฬิกาของกล้อง</string>
+    <string name="status_ok">ตั้งนาฬิกา %1$s เป็น %2$s (%3$s) แล้ว</string>
+    <string name="status_fail">ซิงค์ไม่สำเร็จ: %1$s</string>
+
+    <!-- Cameras -->
+    <string name="section_cameras">กล้อง</string>
+    <string name="cameras_none">ยังไม่ได้เพิ่มกล้อง เปิด Wi-Fi ที่กล้อง แล้วแตะ ค้นหากล้อง</string>
+    <string name="camera_row_switch">เชื่อมต่ออัตโนมัติ แม้กำลังใช้ Wi-Fi อื่นอยู่</string>
+    <string name="camera_row_pending">แตะ ซิงค์เดี๋ยวนี้ หนึ่งครั้งขณะเปิด Wi-Fi ของกล้อง เพื่อตั้งค่าให้เสร็จ</string>
+    <string name="camera_row_join">เชื่อมต่อเฉพาะเมื่อไม่มี Wi-Fi อื่นอยู่ใกล้ ๆ เพิ่มด้วย ค้นหากล้อง เพื่อให้สลับจาก Wi-Fi อื่นได้ด้วย</string>
+    <string name="camera_row_saved">บันทึกไว้ใน Wi-Fi ของโทรศัพท์แล้ว</string>
+    <string name="btn_find_camera">ค้นหากล้อง</string>
+    <string name="btn_add_manual">พิมพ์เอง</string>
+    <string name="btn_remove">ลบ</string>
+    <string name="btn_save">บันทึก</string>
+    <string name="cd_remove">ลบกล้อง</string>
+    <string name="dlg_remove_title">ลบ %1$s?</string>
+    <string name="dlg_remove_body">แอปจะไม่เชื่อมต่อกับกล้องนี้อีก</string>
+    <string name="dlg_password_title">รหัสผ่าน Wi-Fi ของกล้อง</string>
+    <string name="dlg_password_body">รหัสผ่านของ %1$s แสดงอยู่บนหน้าจอกล้อง ใต้ชื่อเครือข่าย</string>
+    <string name="dlg_manual_title">Wi-Fi ของกล้อง</string>
+    <string name="hint_ssid">ชื่อเครือข่ายที่แสดงบนกล้อง</string>
+    <string name="hint_password">รหัสผ่าน</string>
+    <string name="camera_saved">บันทึก %1$s แล้ว กำลังเชื่อมต่อเพื่อตั้งนาฬิกา&#8230;</string>
+
+    <!-- Automation -->
+    <string name="section_automation">การทำงานอัตโนมัติ</string>
+    <string name="auto_title">ซิงค์อัตโนมัติ</string>
+    <string name="auto_desc">ตั้งนาฬิกากล้องทุกครั้งที่โทรศัพท์เชื่อมต่อ Wi-Fi ของกล้อง เริ่มทำงานพร้อมโทรศัพท์</string>
+    <string name="auto_connect_title">เชื่อมต่อ Wi-Fi ของกล้อง</string>
+    <string name="auto_connect_desc_q">เมื่อเปิด Wi-Fi ของกล้อง โทรศัพท์จะเชื่อมต่อ ตั้งนาฬิกา แล้วกลับไปใช้ Wi-Fi เดิม ตรวจหากล้องเมื่อปลดล็อกโทรศัพท์ และทุก 3 นาทีขณะที่หน้าจอเปิดอยู่</string>
+    <string name="auto_connect_desc_legacy">โทรศัพท์จะเชื่อมต่อ Wi-Fi ของกล้องเองเมื่อกล้องเปิด Wi-Fi และไม่มี Wi-Fi อื่นที่บันทึกไว้อยู่ใกล้ ๆ ปุ่ม ซิงค์เดี๋ยวนี้ จะสลับไปที่กล้องได้จาก Wi-Fi ใดก็ได้</string>
+    <string name="btn_wifi">การตั้งค่า Wi-Fi ของโทรศัพท์</string>
+
+    <!-- Keep running -->
+    <string name="section_keep_running">ทำงานต่อเนื่อง</string>
+    <string name="bg_title">ทำงานเบื้องหลัง</string>
+    <string name="bg_ok">อนุญาตแล้ว โทรศัพท์จะไม่หยุดแอปเพื่อประหยัดแบตเตอรี่</string>
+    <string name="bg_no">ยังไม่ได้อนุญาต โทรศัพท์อาจหยุดแอป และกล้องจะไม่ได้รับการซิงค์</string>
+    <string name="btn_allow">อนุญาต</string>
+    <string name="btn_open">เปิด</string>
+    <string name="btn_oem_battery">ประหยัดแบตเตอรี่ของ %1$s</string>
+    <string name="autostart_title">เริ่มทำงานพร้อมโทรศัพท์</string>
+    <string name="autostart_none">เปิดอยู่ แอปจะเริ่มทำงานเองหลังรีสตาร์ทโทรศัพท์</string>
+    <string name="autostart_todo">โทรศัพท์ %1$s ต้องเปิด \"เริ่มอัตโนมัติ\" (Auto-start) ให้แอปนี้ด้วย</string>
+    <string name="autostart_seen">ตรวจสอบว่าเปิดสวิตช์ของ OM Time ไว้ในการตั้งค่าเริ่มอัตโนมัติของ %1$s</string>
+
+    <!-- First-launch guide dialogs -->
+    <string name="dlg_open">เปิดการตั้งค่า</string>
+    <string name="dlg_later">ภายหลัง</string>
+    <string name="dlg_restricted_title">การทำงานเบื้องหลังถูกจำกัด</string>
+    <string name="dlg_restricted_body">ในหน้าถัดไป เปิดเมนูแบตเตอรี่ แล้วเลือก \"ไม่จำกัด\" หรือปิดการจำกัดการทำงานเบื้องหลัง</string>
+    <string name="dlg_autostart_title">อนุญาตให้เริ่มอัตโนมัติ</string>
+    <string name="dlg_autostart_body">โทรศัพท์ %1$s จะไม่ให้แอปเริ่มทำงานพร้อมเครื่องจนกว่าจะอนุญาต ในหน้าถัดไป ให้หา OM Time แล้วเปิดสวิตช์</string>
+    <string name="dlg_oem_battery_title">ประหยัดแบตเตอรี่</string>
+    <string name="dlg_oem_battery_body">ในหน้าถัดไป ตั้งค่า OM Time เป็น \"ไม่มีข้อจำกัด\" (อาจเรียกว่า \"ไม่จำกัด\" หรือ \"แอปที่ไม่เข้าสู่โหมดสลีปเลย\")</string>
+
+    <!-- Setup guide and log -->
+    <string name="how_title">วิธีตั้งค่า</string>
+    <string name="how_body">1. อนุญาตทุกอย่างที่แอปขอ ได้แก่ การแจ้งเตือน การทำงานเบื้องหลัง และในโทรศัพท์บางรุ่น การเริ่มอัตโนมัติ\n2. ที่กล้อง เปิด Wi-Fi (เชื่อมต่อกับสมาร์ทโฟน) กล้องจะแสดงชื่อเครือข่ายและรหัสผ่าน\n3. แตะ ค้นหากล้อง เลือกเครือข่ายของกล้อง แล้วพิมพ์รหัสผ่าน (ค้นหากล้อง แสดงเฉพาะกล้อง Olympus และ OM System หากไม่พบกล้องของคุณ ให้ใช้ พิมพ์เอง) หากโทรศัพท์ถามว่าจะเชื่อมต่อกับอุปกรณ์หรือไม่ ให้อนุญาต\n4. เสร็จแล้ว ทุกครั้งที่เปิด Wi-Fi ของกล้อง โทรศัพท์จะเชื่อมต่อและตั้งนาฬิกาตามเวลาและเขตเวลาของโทรศัพท์</string>
+    <string name="log_title">กิจกรรมล่าสุด</string>
+    <string name="log_empty">ยังไม่มี</string>
+
+    <!-- Errors -->
+    <string name="err_no_wifi">ไม่ได้เชื่อมต่อ Wi-Fi</string>
+    <string name="err_no_camera">ไม่พบกล้อง Olympus บน Wi-Fi นี้</string>
+    <string name="err_no_camera_added">ไม่พบกล้องบน Wi-Fi นี้ เพิ่มกล้องในส่วน กล้อง เพื่อให้แอปเชื่อมต่อได้</string>
+    <string name="err_camera_not_found">ไม่พบ Wi-Fi ของกล้อง เปิด Wi-Fi ที่กล้อง (เชื่อมต่อกับสมาร์ทโฟน) แล้วลองอีกครั้ง</string>
+    <string name="err_unsupported">%1$s ไม่รองรับคำสั่งตั้งนาฬิกา</string>
+    <string name="err_ssid">พิมพ์ชื่อเครือข่ายให้ตรงกับที่กล้องแสดง</string>
+    <string name="err_password">รหัสผ่านต้องยาว 8 ถึง 63 ตัวอักษร</string>
+    <string name="err_find_failed">ค้นหากล้องไม่ได้: %1$s</string>
+    <string name="err_pick_failed">โทรศัพท์ไม่ได้ส่งชื่อเครือข่ายที่เลือกมา กรุณาพิมพ์เอง</string>
+
+    <!-- Notifications -->
+    <string name="channel_watch">กำลังรอกล้อง</string>
+    <string name="channel_result">ผลการซิงค์</string>
+    <string name="notif_waiting">กำลังรอ Wi-Fi ของกล้อง</string>
+</resources>

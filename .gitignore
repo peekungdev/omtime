@@ -1,0 +1,19 @@
+# Gradle and Android build output
+.gradle/
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Machine-specific: the local Android SDK path
+local.properties
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Built apps are attached to GitHub Releases, not committed
+*.apk
+*.aab
