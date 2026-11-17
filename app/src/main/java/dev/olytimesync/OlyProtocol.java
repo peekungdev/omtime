@@ -49,6 +49,8 @@ public final class OlyProtocol {
     private final String base;
     private final Opener opener;
     public int timeoutMs = 3000;
+    /** The most recent reply, for logging. */
+    public volatile Reply last;
 
     public OlyProtocol(String base, Opener opener) {
         this.base = base;
@@ -67,7 +69,8 @@ public final class OlyProtocol {
             c.setRequestProperty("Connection", "close");
             int code = c.getResponseCode();
             InputStream in = code >= 400 ? c.getErrorStream() : c.getInputStream();
-            return new Reply(code, in == null ? "" : read(in));
+            last = new Reply(code, in == null ? "" : read(in));
+            return last;
         } finally {
             c.disconnect();
         }

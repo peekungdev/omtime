@@ -6,6 +6,7 @@ import android.net.LinkAddress;
 import android.net.LinkProperties;
 import android.net.Network;
 import android.os.SystemClock;
+import android.util.Log;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -33,8 +34,13 @@ final class SyncEngine {
     /** Flag: the app joined this network to reach a camera, so no camera there is an error worth reporting. */
     static final int JOINED = 2;
 
-    /** An automatic sync of the same camera within this time is skipped (the phone rejoining after the probe). */
-    private static final long REPEAT_MS = 10 * 60 * 1000L;
+    /**
+     * An automatic sync of the same camera within this time is skipped. It covers only the phone rejoining the
+     * camera's Wi-Fi by itself right after the probe released it; switching the camera's Wi-Fi off and on again
+     * takes longer than this and is synced again.
+     */
+    private static final long REPEAT_MS = 2 * 60 * 1000L;
+    private static final String TAG = CameraWifi.TAG;
 
     private static final Object LOCK = new Object();
     /** The connection already dealt with, so the listeners and the joiner do not all sync it. */
@@ -46,7 +52,16 @@ final class SyncEngine {
     private SyncEngine() {
     }
 
+    static String name(int result) {
+        return result == OK ? "OK" : result == FAILED ? "FAILED" : "NOT_CAMERA";
+    }
+
     static int run(Context context, Network net, int flags) {
+        return run(context, net, flags, null);
+    }
+
+    /** camera: the saved camera the app joined this network for, or null. */
+    static int run(Context context, Network net, int flags, Camera camera) {
         Context c = context.getApplicationContext();
         boolean user = (flags & USER) != 0;
         boolean joined = (flags & JOINED) != 0;
@@ -58,9 +73,10 @@ final class SyncEngine {
             }
             int result;
             try {
-                result = sync(c, net, user, joined);
+                result = sync(c, net, user, joined, camera);
             } catch (RuntimeException e) {
                 // e.g. the network went away mid-way and the platform threw instead of failing the request
+                Log.w(TAG, "sync threw", e);
                 result = (user || joined) ? failed(c, String.valueOf(e.getMessage())) : NOT_CAMERA;
             }
             if (result != FAILED) {
@@ -71,10 +87,12 @@ final class SyncEngine {
         }
     }
 
-    private static int sync(Context c, Network net, boolean user, boolean joined) {
+    private static int sync(Context c, Network net, boolean user, boolean joined, Camera camera) {
         if (!onCameraSubnet(c, net)) {
+            if (joined) Log.i(TAG, "joined network has no 192.168.0.x address");
             return joined ? failed(c, c.getString(R.string.err_no_camera)) : NOT_CAMERA;
         }
+        Log.i(TAG, "camera subnet on network " + net.getNetworkHandle() + (user ? " (user)" : joined ? " (joined)" : " (auto)"));
 
         OlyProtocol cam = new OlyProtocol(OlyProtocol.CAMERA_BASE, url -> (HttpURLConnection) net.openConnection(url));
         cam.timeoutMs = 2500;
@@ -95,10 +113,16 @@ final class SyncEngine {
             }
         }
         if (model == null) {
+            Log.i(TAG, "no camera answered get_caminfo");
             return joined ? failed(c, c.getString(R.string.err_no_camera)) : NOT_CAMERA;
         }
+        Log.i(TAG, "camera " + model + ", round trip " + rtt + " ms");
         cameraNetwork = net.getNetworkHandle();
-        if (!user && !joined && Prefs.recentlySynced(c, model, REPEAT_MS)) return OK;
+        if (!user && !joined && Prefs.recentlySynced(c, model, REPEAT_MS)) {
+            Log.i(TAG, model + " was synced moments ago; skipping");
+            CameraWifi.synced(c, model, camera);
+            return OK;
+        }
 
         cam.timeoutMs = 5000;
         String commands = null;
@@ -108,6 +132,7 @@ final class SyncEngine {
             // not fatal: try the clock command anyway
         }
         if (commands != null && !commands.contains("set_utctimediff")) {
+            Log.i(TAG, model + " has no set_utctimediff in its command list");
             return failed(c, c.getString(R.string.err_unsupported, model));
         }
 
@@ -122,13 +147,17 @@ final class SyncEngine {
                     // let the clock command itself report the problem
                 }
                 long set = cam.setClock(tz, Math.min(rtt / 2, 250));
+                OlyProtocol.Reply r = cam.last;
+                Log.i(TAG, "set_utctimediff -> HTTP " + r.code + " body \"" + r.body.trim() + "\"");
                 SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
                 String offset = offsetLabel(tz, set);
                 String line = c.getString(R.string.status_ok, model, f.format(new Date(set)), offset);
                 Prefs.recordOk(c, model, set, offset, line);
                 Notes.result(c, line);
+                CameraWifi.synced(c, model, camera);
                 return OK;
             } catch (IOException e) {
+                Log.w(TAG, "setting the clock failed: " + e.getMessage());
                 last = e;
             }
         }

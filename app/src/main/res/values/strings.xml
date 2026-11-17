@@ -28,7 +28,7 @@
     <string name="cameras_none">No camera added yet. Turn on Wi-Fi on the camera, then tap Find camera.</string>
     <string name="camera_row_switch">Joined automatically, even from another Wi-Fi</string>
     <string name="camera_row_pending">Tap Sync now once while the camera\'s Wi-Fi is on to finish setting it up</string>
-    <string name="camera_row_join">Joined only when no other Wi-Fi is in range. Add it with Find camera to switch over from other Wi-Fi too.</string>
+    <string name="camera_row_join">Synced with Sync now. Add it with Find camera to have the phone connect to it by itself.</string>
     <string name="camera_row_saved">Saved in the phone\'s Wi-Fi</string>
     <string name="btn_find_camera">Find camera</string>
     <string name="btn_add_manual">Type in</string>
@@ -49,7 +49,7 @@
     <string name="auto_title">Automatic sync</string>
     <string name="auto_desc">Sets the camera clock whenever the phone connects to the camera\'s Wi-Fi. Starts with the phone.</string>
     <string name="auto_connect_title">Connect to the camera\'s Wi-Fi</string>
-    <string name="auto_connect_desc_q">When the camera\'s Wi-Fi is on, the phone joins it, sets the clock and goes back to its usual Wi-Fi. Checked when you unlock the phone and every 3 minutes while the screen is on.</string>
+    <string name="auto_connect_desc_q">Each time the camera\'s Wi-Fi is switched on, the phone joins it, sets the clock once and goes back to its usual Wi-Fi.</string>
     <string name="auto_connect_desc_legacy">The phone joins the camera\'s Wi-Fi by itself when it is on and no other saved Wi-Fi is in range. Sync now switches to the camera from any Wi-Fi.</string>
     <string name="btn_wifi">Phone Wi-Fi settings</string>
 

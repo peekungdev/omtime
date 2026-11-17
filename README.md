@@ -13,10 +13,10 @@ Made by **Peekungdev | peekung-development**
 
 ## Features
 
-- **Automatic sync**: sets the camera clock whenever the phone connects to the camera's Wi-Fi, with
+- **Automatic sync**: sets the camera clock once each time the camera's Wi-Fi is switched on, with
   time zone and daylight saving taken from the phone.
 - **Auto-connect**: joins the camera's Wi-Fi by itself, even from another Wi-Fi network, then returns
-  the phone to that network.
+  the phone to that network straight away.
 - **Starts with the phone**: runs in the background after a restart, with guided setup for battery
   optimisation and the auto-start settings that Xiaomi, Oppo, Vivo, Huawei and other phones need.
 - **Find camera**: lists only Olympus / OM System camera networks. There is also a manual
@@ -50,8 +50,8 @@ running, so the phone asks fewer questions:
 
 ## First-time setup
 
-1. Open OM Time once and allow what it asks for: notifications, running in the background and, on
-   some phones, auto-start.
+1. Open OM Time once and allow what it asks for: notifications, Nearby devices (to see the camera's
+   Wi-Fi come on), running in the background and, on some phones, auto-start.
 2. On the camera, start Wi-Fi (**Connection to Smartphone**). The camera shows a network name and
    password.
 3. In OM Time, tap **Find camera**, pick the camera's network and type the password. The app connects
@@ -69,15 +69,22 @@ the one OI.Share uses. OM Time:
    current offset (daylight saving included).
 
 **Finding the camera without location permission.** The app recognises the camera's network by its
-`192.168.0.x` address and the camera's answer, so it never needs to read Wi-Fi names. Find camera uses
-Android's companion-device picker, which also needs no location permission.
+`192.168.0.x` address and the camera's answer. Find camera uses Android's companion-device picker,
+which needs no location permission. On Android 13 and newer, the app reads the phone's Wi-Fi scan list
+through the *Nearby devices* permission, declared "never for location", to see when the camera's
+Wi-Fi comes on and goes off.
 
 **Connecting to the camera's Wi-Fi.**
 
 | Android | How the phone joins the camera |
 |---|---|
-| 10 and newer | The camera is registered as a Wi-Fi suggestion, so the phone joins it when no other Wi-Fi is in range. While the screen is on, the app also checks for the camera when you unlock the phone and every 3 minutes. If the camera is there, the app makes a temporary connection to it, syncs, and releases it. Android remembers your approval, so this happens without prompts. |
+| 13 and newer | When the camera's Wi-Fi appears in the phone's Wi-Fi scans, the app makes a temporary connection to it, syncs, and releases it, so the phone goes straight back to its usual Wi-Fi. This happens once each time the camera's Wi-Fi is switched on. |
+| 10 to 12 | The same temporary connection, tried when you unlock the phone and every few minutes while the screen is on, and at most once every 30 minutes per camera. |
 | 6 to 9 | The camera is saved as a Wi-Fi network, so the phone joins it when no other saved Wi-Fi is in range. **Sync now** switches to the camera from any network. |
+
+On Android 10 and newer, Android asks you once to approve the connection to the camera. After that it
+connects without asking. The app does not register the camera as a Wi-Fi suggestion: that made Android
+stay on the camera, which has no internet, as the phone's main Wi-Fi.
 
 **Staying alive.** A small foreground service starts at boot. A system network callback and a periodic
 job restart it if the phone stops it.
@@ -88,6 +95,7 @@ job restart it if the phone stops it.
 |---|---|
 | Internet, network state | Talk to the camera on its own Wi-Fi |
 | Wi-Fi state / change Wi-Fi | Join the camera's Wi-Fi |
+| Nearby devices (Android 13+) | See the camera's Wi-Fi in the phone's Wi-Fi scans. Declared "never for location" |
 | Run at startup | Start watching for the camera after a restart |
 | Foreground service | Keep watching in the background |
 | Notifications | Show sync results |
@@ -114,13 +122,17 @@ camera list and the Find camera network-name filter.
 
 ## Status and known limits
 
-- This is a new project. The protocol and the app logic are tested against a simulated camera. Reports
-  from real cameras and phones are welcome. Please open an issue with your camera model, phone model
-  and Android version.
+- This is a new project. Tested so far: a PEN E-PL7 with a REDMAGIC 10 Pro on Android 16, where the
+  automatic join and the clock command work. Reports from other cameras and phones are welcome.
+  Please open an issue with your camera model, phone model and Android version.
+- Debugging: some phones hide app logs. `adb shell setprop log.tag.OMTime V` turns on OM Time's log
+  until the phone restarts, and `adb logcat -s OMTime` shows it.
 - Find camera recognises networks named like `E-PL8-P-00000001` (model, letter, serial), the pattern
   shown in Olympus manuals. If your camera does not appear, use **Type in**, and please report its
   network-name format.
-- Background switching from another Wi-Fi network needs Android 10 or newer.
+- Background switching from another Wi-Fi network needs Android 10 or newer. On some phones, Android uses
+  the phone's main Wi-Fi for the camera connection, so the usual Wi-Fi drops for the few seconds a sync
+  takes.
 - The auto-start settings page is opened for the phone makers the app knows about. On other phones,
   the app opens its own settings page instead.
 

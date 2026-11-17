@@ -26,7 +26,7 @@
     <string name="cameras_none">ยังไม่ได้เพิ่มกล้อง เปิด Wi-Fi ที่กล้อง แล้วแตะ ค้นหากล้อง</string>
     <string name="camera_row_switch">เชื่อมต่ออัตโนมัติ แม้กำลังใช้ Wi-Fi อื่นอยู่</string>
     <string name="camera_row_pending">แตะ ซิงค์เดี๋ยวนี้ หนึ่งครั้งขณะเปิด Wi-Fi ของกล้อง เพื่อตั้งค่าให้เสร็จ</string>
-    <string name="camera_row_join">เชื่อมต่อเฉพาะเมื่อไม่มี Wi-Fi อื่นอยู่ใกล้ ๆ เพิ่มด้วย ค้นหากล้อง เพื่อให้สลับจาก Wi-Fi อื่นได้ด้วย</string>
+    <string name="camera_row_join">ซิงค์ด้วยปุ่ม ซิงค์เดี๋ยวนี้ เพิ่มด้วย ค้นหากล้อง เพื่อให้โทรศัพท์เชื่อมต่อกล้องเองได้</string>
     <string name="camera_row_saved">บันทึกไว้ใน Wi-Fi ของโทรศัพท์แล้ว</string>
     <string name="btn_find_camera">ค้นหากล้อง</string>
     <string name="btn_add_manual">พิมพ์เอง</string>
@@ -47,7 +47,7 @@
     <string name="auto_title">ซิงค์อัตโนมัติ</string>
     <string name="auto_desc">ตั้งนาฬิกากล้องทุกครั้งที่โทรศัพท์เชื่อมต่อ Wi-Fi ของกล้อง เริ่มทำงานพร้อมโทรศัพท์</string>
     <string name="auto_connect_title">เชื่อมต่อ Wi-Fi ของกล้อง</string>
-    <string name="auto_connect_desc_q">เมื่อเปิด Wi-Fi ของกล้อง โทรศัพท์จะเชื่อมต่อ ตั้งนาฬิกา แล้วกลับไปใช้ Wi-Fi เดิม ตรวจหากล้องเมื่อปลดล็อกโทรศัพท์ และทุก 3 นาทีขณะที่หน้าจอเปิดอยู่</string>
+    <string name="auto_connect_desc_q">ทุกครั้งที่เปิด Wi-Fi ของกล้อง โทรศัพท์จะเชื่อมต่อ ตั้งนาฬิกาหนึ่งครั้ง แล้วกลับไปใช้ Wi-Fi เดิม</string>
     <string name="auto_connect_desc_legacy">โทรศัพท์จะเชื่อมต่อ Wi-Fi ของกล้องเองเมื่อกล้องเปิด Wi-Fi และไม่มี Wi-Fi อื่นที่บันทึกไว้อยู่ใกล้ ๆ ปุ่ม ซิงค์เดี๋ยวนี้ จะสลับไปที่กล้องได้จาก Wi-Fi ใดก็ได้</string>
     <string name="btn_wifi">การตั้งค่า Wi-Fi ของโทรศัพท์</string>
 

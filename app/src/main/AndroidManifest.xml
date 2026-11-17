@@ -8,6 +8,10 @@
     <!-- Joining the camera's Wi-Fi: suggestions and network requests (Android 10+), saved networks before. -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <!-- Android 13+: read Wi-Fi scan results to see when the camera's Wi-Fi comes on. Never used for location. -->
+    <uses-permission
+        android:name="android.permission.NEARBY_WIFI_DEVICES"
+        android:usesPermissionFlags="neverForLocation" />
     <!-- Granted once a camera is added with Find camera: Android then lets the app run and start from the background. -->
     <uses-permission android:name="android.permission.REQUEST_COMPANION_RUN_IN_BACKGROUND" />
     <uses-permission android:name="android.permission.REQUEST_COMPANION_START_FOREGROUND_SERVICES_FROM_BACKGROUND" />

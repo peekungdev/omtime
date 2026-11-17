@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -159,10 +160,16 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         ((TextView) findViewById(R.id.credit)).setText(getString(R.string.made_by, getString(R.string.credit)));
 
         Notes.channels(this);
-        if (Build.VERSION.SDK_INT >= 33
-                && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            askingNotifications = true;
-            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+        if (Build.VERSION.SDK_INT >= 33) {
+            // Notifications for the results; Nearby devices to see the camera's Wi-Fi come on (no location access).
+            List<String> ask = new ArrayList<>();
+            for (String p : new String[]{Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.NEARBY_WIFI_DEVICES}) {
+                if (checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED) ask.add(p);
+            }
+            if (!ask.isEmpty()) {
+                askingNotifications = true;
+                requestPermissions(ask.toArray(new String[0]), 1);
+            }
         }
         if (Prefs.auto(this)) Watcher.arm(this);
     }
@@ -317,8 +324,11 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
             }
             View row = inflater.inflate(R.layout.camera_row, camerasBox, false);
             ((TextView) row.findViewById(R.id.cam_name)).setText(cam.ssid);
+            // Matches CameraWifi.probe(): a typed-in camera has no access point address, which Android before 13
+            // needs in order to approve the background connection without asking.
+            boolean auto = cam.bssid != null || Build.VERSION.SDK_INT >= 33;
             ((TextView) row.findViewById(R.id.cam_how)).setText(!CameraWifi.canSwitch() ? R.string.camera_row_saved
-                    : cam.bssid == null ? R.string.camera_row_join
+                    : !auto ? R.string.camera_row_join
                     : cam.joined ? R.string.camera_row_switch : R.string.camera_row_pending);
             row.findViewById(R.id.cam_remove).setOnClickListener(v -> confirmRemove(cam));
             camerasBox.addView(row);

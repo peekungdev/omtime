@@ -1,12 +1,15 @@
 package dev.olytimesync;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.MacAddress;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
+import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiNetworkSpecifier;
@@ -14,11 +17,13 @@ import android.net.wifi.WifiNetworkSuggestion;
 import android.os.Build;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -39,16 +44,33 @@ import java.util.concurrent.atomic.AtomicReference;
  * background would need location access, so there is no background switch-over there.
  */
 final class CameraWifi {
+    static final String TAG = "OMTime";
     static final long PROBE_EVERY_MS = 3 * 60 * 1000L;
     private static final long PROBE_MIN_GAP_MS = 30 * 1000L;
-    private static final long AFTER_SYNC_MS = 60 * 60 * 1000L;
+    /** Without scan access the app cannot tell when the camera's Wi-Fi went off, so it waits this long instead. */
+    private static final long FALLBACK_AFTER_SYNC_MS = 30 * 60 * 1000L;
     private static final long AFTER_FAIL_MS = 10 * 60 * 1000L;
+    private static final long AFTER_NOT_FOUND_MS = 60 * 1000L;
+    /** While the screen is on, a fresh Wi-Fi scan is asked for this often (Android itself scans rarely on a good Wi-Fi). */
+    static final long SCAN_EVERY_MS = 2 * 60 * 1000L;
+    /** If the phone's newest scan result is older than this, the scan list says nothing about the camera. */
+    private static final long SCANS_STALE_MS = 3 * 60 * 1000L;
+    /** The camera counts as switched on when a scan saw it this recently... */
+    private static final long SEEN_MS = 90 * 1000L;
+    /** ...and as switched off when recent scans have not seen it for this long. Tolerates a scan that missed it. */
+    private static final long GONE_MS = 4 * 60 * 1000L;
+    private static final long NEVER = Long.MAX_VALUE;
     private static final int PROBE_TIMEOUT_MS = 40 * 1000;
     private static final int USER_TIMEOUT_MS = 60 * 1000;
 
     /** One join at a time: the probe, Sync now and a newly added camera all use the Wi-Fi radio. */
     private static final AtomicBoolean busy = new AtomicBoolean();
     private static final Map<String, Long> quietUntil = new HashMap<>();
+    /**
+     * When each camera (by network name) was last synced. With scan access an entry lives only while the camera's
+     * Wi-Fi stays visible, so every time the Wi-Fi is switched on again the camera is synced again, once.
+     */
+    private static final Map<String, Long> syncedAt = new HashMap<>();
     private static long lastProbe;
 
     private CameraWifi() {
@@ -76,22 +98,19 @@ final class CameraWifi {
         else applySaved(c, wm);
     }
 
+    /**
+     * Android 10+ no longer gets the cameras as Wi-Fi suggestions (1.2 to 1.6 did). Seen on a real phone: after the
+     * app released the camera, Android joined it again through the suggestion as the phone's main Wi-Fi and stayed
+     * on the camera, with no internet, for minutes. The app's own join-sync-release covers the same ground, so this
+     * only removes what older versions suggested.
+     */
     private static void applySuggestions(Context c, WifiManager wm) {
         if (Build.VERSION.SDK_INT < 29) return;
         try {
             // An empty list removes everything this app suggested before.
-            wm.removeNetworkSuggestions(new ArrayList<>());
-            if (!autoConnectOn(c)) return;
-            List<WifiNetworkSuggestion> list = new ArrayList<>();
-            for (Camera cam : Camera.load(c)) {
-                list.add(new WifiNetworkSuggestion.Builder()
-                        .setSsid(cam.ssid)
-                        .setWpa2Passphrase(cam.password)
-                        .build());
-            }
-            if (!list.isEmpty()) wm.addNetworkSuggestions(list);
+            wm.removeNetworkSuggestions(new ArrayList<WifiNetworkSuggestion>());
         } catch (RuntimeException e) {
-            // Suggestions are the extra path; the probe and Sync now still work without them.
+            // nothing was suggested
         }
     }
 
@@ -150,38 +169,59 @@ final class CameraWifi {
     }
 
     /**
-     * Background check, from WatchService while the screen is on: if a camera's Wi-Fi is up, join it, sync, and go
-     * back. Returns at once; the work runs on its own thread.
+     * Background check: if a camera's Wi-Fi is up and that camera has not been synced since its Wi-Fi came on, join
+     * it, sync, and go back. Called by WatchService on every Wi-Fi scan result (fromScan) and on a timer while the
+     * screen is on. Returns at once; the work runs on its own thread.
      */
-    static void probe(Context ctx) {
+    static void probe(Context ctx, boolean fromScan) {
         if (Build.VERSION.SDK_INT < 29) return;
         Context c = ctx.getApplicationContext();
-        if (!autoConnectOn(c) || SyncEngine.cameraNetwork != -1) return;
+        if (!autoConnectOn(c)) return;
+        if (SyncEngine.cameraNetwork != -1) return;   // already on a camera's Wi-Fi; the listener handles it
         PowerManager pm = c.getSystemService(PowerManager.class);
-        if (pm == null || !pm.isInteractive()) return;   // Android pauses these scans while the screen is off
+        // Without fresh scan results, the network request would have to scan, and Android pauses that with the screen off.
+        if (!fromScan && (pm == null || !pm.isInteractive())) return;
         WifiManager wm = wifi(c);
         if (wm == null || !wm.isWifiEnabled()) return;
 
+        // How long ago each network was last seen; null when the app may not read scans or they are out of date.
+        Map<String, Long> ages = scanAges(c, wm);
+        if (fromScan && ages == null) return;
         long now = SystemClock.elapsedRealtime();
         List<Camera> targets = new ArrayList<>();
         synchronized (quietUntil) {
-            if (lastProbe != 0 && now - lastProbe < PROBE_MIN_GAP_MS) return;
             for (Camera cam : Camera.load(c)) {
+                // Only cameras the phone has joined through the app before: Android grants those without a dialog.
+                // A typed-in camera has no access point address, which older Android versions need for that.
+                if (!cam.joined || (cam.bssid == null && Build.VERSION.SDK_INT < 33)) continue;
+                Long synced = syncedAt.get(cam.ssid);
+                if (ages != null) {
+                    long age = Math.min(age(ages, cam.ssid), cam.bssid == null ? NEVER : age(ages, cam.bssid));
+                    if (age > GONE_MS) {
+                        if (syncedAt.remove(cam.ssid) != null) Log.i(TAG, cam.ssid + " is off; it syncs again next time");
+                        continue;
+                    }
+                    if (synced != null) continue;   // already synced since its Wi-Fi came on
+                    if (age > SEEN_MS) continue;    // not in the latest scans; wait until one sees it
+                } else if (synced != null && now - synced < FALLBACK_AFTER_SYNC_MS) {
+                    continue;
+                }
                 Long until = quietUntil.get(cam.ssid);
-                // Only cameras with a known access point that the phone has joined before: Android grants those
-                // requests without a dialog.
-                if (cam.bssid != null && cam.joined && (until == null || now >= until)) targets.add(cam);
+                if (until == null || now >= until) targets.add(cam);
             }
-            if (targets.isEmpty() || !busy.compareAndSet(false, true)) return;
+            if (targets.isEmpty()) return;
+            if (lastProbe != 0 && now - lastProbe < PROBE_MIN_GAP_MS) return;
+            if (!busy.compareAndSet(false, true)) return;
             lastProbe = now;
         }
+        Log.i(TAG, "probe: " + targets.size() + " camera(s) " + (ages != null ? "seen in Wi-Fi scan" : "on timer"));
         new Thread(() -> {
             try {
                 for (Camera cam : targets) {
                     int r = join(c, cam, false);
-                    if (r == SyncEngine.NOT_CAMERA) continue;
-                    quiet(cam, r == SyncEngine.OK ? AFTER_SYNC_MS : AFTER_FAIL_MS);
+                    Log.i(TAG, "probe " + cam.ssid + ": " + SyncEngine.name(r));
                     if (r == SyncEngine.OK) break;
+                    quiet(cam, r == SyncEngine.FAILED ? AFTER_FAIL_MS : AFTER_NOT_FOUND_MS);
                 }
             } finally {
                 busy.set(false);
@@ -189,9 +229,82 @@ final class CameraWifi {
         }, "camera-probe").start();
     }
 
+    private static boolean canReadScans(Context c) {
+        return Build.VERSION.SDK_INT >= 33
+                && c.checkSelfPermission(Manifest.permission.NEARBY_WIFI_DEVICES) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
+     * For each network name and access point address in the phone's Wi-Fi scan list, how many milliseconds ago it
+     * was last seen. Null when the app may not read scans, or when the phone has not scanned for a while, so the
+     * list says nothing about what is on now. Android 13+ allows reading scans with "Nearby devices" (declared
+     * neverForLocation), so no location permission.
+     */
+    @SuppressLint("MissingPermission")
+    private static Map<String, Long> scanAges(Context c, WifiManager wm) {
+        if (!canReadScans(c)) return null;
+        try {
+            List<ScanResult> results = wm.getScanResults();
+            if (results == null || results.isEmpty()) return null;
+            long nowUs = SystemClock.elapsedRealtime() * 1000L;
+            long newest = NEVER;
+            Map<String, Long> ages = new HashMap<>();
+            for (ScanResult r : results) {
+                long age = Math.max(0, (nowUs - r.timestamp) / 1000L);   // timestamp: microseconds since boot
+                newest = Math.min(newest, age);
+                @SuppressWarnings("deprecation") String ssid = r.SSID;
+                if (ssid != null && age < age(ages, ssid)) ages.put(ssid, age);
+                if (r.BSSID != null) ages.put(r.BSSID.toLowerCase(Locale.US), age);
+            }
+            return newest > SCANS_STALE_MS ? null : ages;
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    private static long age(Map<String, Long> ages, String key) {
+        Long a = ages.get(key);
+        return a == null ? NEVER : a;
+    }
+
+    /**
+     * Asks Android for a fresh Wi-Fi scan; the results reach probe() through WatchService's scan receiver. False when
+     * that is not possible (no scan access, Wi-Fi off, or Android's scan throttling said no).
+     */
+    @SuppressLint("MissingPermission")
+    @SuppressWarnings("deprecation")
+    static boolean requestScan(Context ctx) {
+        Context c = ctx.getApplicationContext();
+        if (!autoConnectOn(c) || !canReadScans(c) || SyncEngine.cameraNetwork != -1) return false;
+        WifiManager wm = wifi(c);
+        if (wm == null || !wm.isWifiEnabled()) return false;
+        try {
+            boolean ok = wm.startScan();
+            Log.i(TAG, "scan requested: " + ok);
+            return ok;
+        } catch (RuntimeException e) {
+            return false;
+        }
+    }
+
     private static void quiet(Camera cam, long ms) {
         synchronized (quietUntil) {
             quietUntil.put(cam.ssid, SystemClock.elapsedRealtime() + ms);
+        }
+    }
+
+    /**
+     * A camera was synced (by the probe, Sync now, or the phone joining its Wi-Fi by itself). Marks every saved camera
+     * whose network name starts with the model ("E-PL7" for "E-PL7-P-..."), so the probe does not sync it again
+     * while its Wi-Fi stays on.
+     */
+    static void synced(Context c, String model, Camera joined) {
+        long now = SystemClock.elapsedRealtime();
+        synchronized (quietUntil) {
+            if (joined != null) syncedAt.put(joined.ssid, now);
+            for (Camera cam : Camera.load(c)) {
+                if (cam.ssid.startsWith(model + "-")) syncedAt.put(cam.ssid, now);
+            }
         }
     }
 
@@ -212,10 +325,7 @@ final class CameraWifi {
             List<Camera> cams = Camera.load(c);
             for (Camera cam : cams) {
                 int r = join(c, cam, true);
-                if (r != SyncEngine.NOT_CAMERA) {
-                    if (r == SyncEngine.OK) quiet(cam, AFTER_SYNC_MS);
-                    return r;
-                }
+                if (r != SyncEngine.NOT_CAMERA) return r;
             }
             int why = !cams.isEmpty() ? R.string.err_camera_not_found
                     : onWifi ? R.string.err_no_camera_added : R.string.err_no_wifi;
@@ -232,7 +342,6 @@ final class CameraWifi {
         try {
             int r = join(c, cam, true);
             if (r == SyncEngine.NOT_CAMERA) return SyncEngine.failed(c, c.getString(R.string.err_camera_not_found));
-            if (r == SyncEngine.OK) quiet(cam, AFTER_SYNC_MS);
             return r;
         } finally {
             busy.set(false);
@@ -282,17 +391,23 @@ final class CameraWifi {
             }
         };
         int timeout = user ? USER_TIMEOUT_MS : PROBE_TIMEOUT_MS;
+        Log.i(TAG, "requesting " + cam.ssid + (cam.bssid != null ? " / " + cam.bssid : "") + (user ? " (user)" : ""));
         try {
             cm.requestNetwork(request, callback, timeout);
         } catch (RuntimeException e) {
+            Log.w(TAG, "network request refused", e);
             return SyncEngine.NOT_CAMERA;
         }
         try {
             done.await(timeout + 5000L, TimeUnit.MILLISECONDS);
             Network n = joined.get();
-            if (n == null) return SyncEngine.NOT_CAMERA;
+            if (n == null) {
+                Log.i(TAG, cam.ssid + ": not joined (not in range, or the request was not approved)");
+                return SyncEngine.NOT_CAMERA;
+            }
+            Log.i(TAG, cam.ssid + ": joined");
             if (!cam.joined) markJoined(c, cam);
-            return SyncEngine.run(c, n, SyncEngine.JOINED | (user ? SyncEngine.USER : 0));
+            return SyncEngine.run(c, n, SyncEngine.JOINED | (user ? SyncEngine.USER : 0), cam);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return SyncEngine.NOT_CAMERA;
